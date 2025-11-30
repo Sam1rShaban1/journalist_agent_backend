@@ -1,5 +1,4 @@
 import sqlite3
-import json
 from typing import List, Dict, Optional
 from journalist_crew.models import ResearchDossier
 
@@ -14,65 +13,72 @@ class StorageManager:
     def _init_db(self):
         cursor = self.conn.cursor()
         
-        # Table 1: The Research (The "Brain")
+        # 1. Dossiers Table (Now keyed by UUID)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS dossiers (
-                topic TEXT PRIMARY KEY,
+                id TEXT PRIMARY KEY,
+                topic TEXT,
                 data TEXT,
-                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
 
-        # Table 2: The Articles (The "Output")
+        # 2. Articles Table (Links to Dossier ID, not Topic Name)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS articles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                topic TEXT,
+                dossier_id TEXT,
                 content TEXT,
                 instructions TEXT,
                 language TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(topic) REFERENCES dossiers(topic)
+                FOREIGN KEY(dossier_id) REFERENCES dossiers(id)
             )
         ''')
         self.conn.commit()
 
     def save_dossier(self, dossier: ResearchDossier):
+        """Saves or updates the dossier using its UUID."""
         cursor = self.conn.cursor()
         json_data = dossier.model_dump_json()
+        
+        # We use INSERT OR REPLACE so we can update existing sessions too
         cursor.execute('''
-            INSERT OR REPLACE INTO dossiers (topic, data, last_updated)
-            VALUES (?, ?, CURRENT_TIMESTAMP)
-        ''', (dossier.topic.lower(), json_data))
+            INSERT OR REPLACE INTO dossiers (id, topic, data, created_at)
+            VALUES (?, ?, ?, COALESCE((SELECT created_at FROM dossiers WHERE id = ?), CURRENT_TIMESTAMP))
+        ''', (dossier.id, dossier.topic, json_data, dossier.id))
         self.conn.commit()
+        print(f"💾 Dossier saved. ID: {dossier.id}")
 
-    def load_dossier(self, topic: str) -> Optional[ResearchDossier]:
+    def load_dossier(self, dossier_id: str) -> Optional[ResearchDossier]:
+        """Loads a specific research session by ID."""
         cursor = self.conn.cursor()
-        cursor.execute('SELECT data FROM dossiers WHERE topic = ?', (topic.lower(),))
+        cursor.execute('SELECT data FROM dossiers WHERE id = ?', (dossier_id,))
         row = cursor.fetchone()
         if row:
             return ResearchDossier.model_validate_json(row['data'])
         return None
 
-    def list_topics(self) -> List[str]:
+    def list_dossiers(self) -> List[Dict]:
+        """Returns a list of all sessions with metadata."""
         cursor = self.conn.cursor()
-        cursor.execute('SELECT topic FROM dossiers ORDER BY last_updated DESC')
-        return [row['topic'] for row in cursor.fetchall()]
+        cursor.execute('SELECT id, topic, created_at FROM dossiers ORDER BY created_at DESC')
+        return [dict(row) for row in cursor.fetchall()]
 
-    def save_article(self, topic: str, content: str, instructions: str, lang: str):
+    def save_article(self, dossier_id: str, content: str, instructions: str, lang: str):
         cursor = self.conn.cursor()
         cursor.execute('''
-            INSERT INTO articles (topic, content, instructions, language)
+            INSERT INTO articles (dossier_id, content, instructions, language)
             VALUES (?, ?, ?, ?)
-        ''', (topic.lower(), content, instructions, lang))
+        ''', (dossier_id, content, instructions, lang))
         self.conn.commit()
 
-    def get_article_history(self, topic: str) -> List[Dict]:
+    def get_article_history(self, dossier_id: str) -> List[Dict]:
         cursor = self.conn.cursor()
         cursor.execute('''
             SELECT id, content, instructions, language, created_at 
             FROM articles 
-            WHERE topic = ? 
+            WHERE dossier_id = ? 
             ORDER BY created_at DESC
-        ''', (topic.lower(),))
+        ''', (dossier_id,))
         return [dict(row) for row in cursor.fetchall()]
