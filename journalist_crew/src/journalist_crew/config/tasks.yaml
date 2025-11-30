@@ -1,0 +1,57 @@
+# --- RESEARCH PHASE ---
+plan_task:
+  description: >
+    Analyze "{question}". Create a research plan covering:
+    1. Origins (The beginning of the timeline).
+    2. Development (The middle years).
+    3. Current Status (Today).
+  expected_output: >
+    A list of search directives.
+  agent: strategy_chief
+
+fact_finding_task:
+  description: >
+    Execute the research plan. Focus on CHRONOLOGY. 
+    Find the start date, major milestones, and current figures.
+  expected_output: >
+    A raw list of events and facts.
+  agent: timeline_hunter
+
+analysis_task:
+  description: >
+    Review facts. Explain the narrative arc. 
+    Synthesize the "All Time" story.
+  expected_output: >
+    A narrative explanation of the evolution of the topic.
+  agent: context_analyst
+  context: [fact_finding_task]
+
+compile_task:
+  description: >
+    Aggregate everything into the 'ResearchDossier'.
+  expected_output: >
+    A populated ResearchDossier object.
+  agent: strategy_chief
+  context: [fact_finding_task, analysis_task]
+
+# --- WRITING PHASE ---
+write_task:
+  description: >
+    Write a news article in {lang} using the provided Dossier.
+    
+    **USER INSTRUCTIONS:** {instructions}
+    
+    **REQUIRED STRUCTURE:**
+    1. **Headline** (Catchy but factual)
+    2. **Dateline** (City, Country - Date)
+    3. **Executive Summary** (3 bullet points max, bolded)
+    4. **The Lede** (Strong opening paragraph)
+    5. **Historical Context** (Narrative prose, no bullets)
+    6. **Current Situation** (Narrative prose, no bullets)
+    7. **Key Figures** (Small markdown table)
+    8. **Timeline of Events** (Chronological list at the bottom)
+    
+    **CONSTRAINT:** Do NOT use emojis. Keep tone serious.
+  expected_output: >
+    A markdown formatted article string.
+  agent: writer
