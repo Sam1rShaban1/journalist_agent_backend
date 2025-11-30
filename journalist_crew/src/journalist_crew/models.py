@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, Field
 from typing import List
 
@@ -11,12 +12,9 @@ class KeyFigure(BaseModel):
     impact: str = Field(..., description="Specific contribution or controversy.")
 
 class ResearchDossier(BaseModel):
-    """
-    The Master Context Object.
-    This persists in the database and is fed to the Writer agent.
-    """
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique Session ID")
     topic: str = Field(..., description="The main topic.")
-    executive_summary: List[str] = Field(..., description="3-5 high-level summary points.")
-    comprehensive_narrative: str = Field(..., description="A deep-dive narrative covering the 'Why' and 'How' from inception to now.")
+    executive_summary: List[str] = Field(..., description="High-level summary points.")
+    comprehensive_narrative: str = Field(..., description="A deep-dive narrative.")
     key_figures: List[KeyFigure] = Field(..., description="List of major players.")
     timeline: List[TimelineEvent] = Field(..., description="Chronological list of events.")
