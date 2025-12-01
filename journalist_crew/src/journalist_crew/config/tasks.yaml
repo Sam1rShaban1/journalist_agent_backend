@@ -1,57 +1,89 @@
-# --- RESEARCH PHASE ---
+# --- PHASE 1: RESEARCH & VERIFICATION ---
+
 plan_task:
   description: >
-    Analyze "{question}". Create a research plan covering:
-    1. Origins (The beginning of the timeline).
-    2. Development (The middle years).
-    3. Current Status (Today).
+    Analyze "{question}". 
+    Create a strategic research plan that targets:
+    1. **Origins:** Who started it? Which government?
+    2. **Development & Controversy:** Corruption, delays, funding issues.
+    3. **Current Status:** Who is in charge now? What is the opposition saying?
+    
+    **CONTEXT LOCK:** The topic is strictly **North Macedonia / Balkans**.
   expected_output: >
-    A list of search directives.
+    A list of search directives targeting Macedonian and Balkan news sources.
   agent: strategy_chief
 
 fact_finding_task:
   description: >
-    Execute the research plan. Focus on CHRONOLOGY. 
-    Find the start date, major milestones, and current figures.
+    Execute the research plan.
+    
+    1. **Initial Reconnaissance:** Search broadly for key articles.
+    2. **Deep-Dive:** Extract full text, not just snippets.
+    3. **MANDATORY NAMES:** Find the specific Prime Ministers, Ministers, Directors and all key people involved.
+    4. **DATES:** Every event must have a specific date (Year/Month).
+    
+    **Constraint:** Do not hallucinate. If you can't find a name, state "Unknown".
   expected_output: >
-    A raw list of events and facts.
+    A raw chronological list of verified events and names.
   agent: timeline_hunter
 
 analysis_task:
   description: >
-    Review facts. Explain the narrative arc. 
-    Synthesize the "All Time" story.
+    Review the facts. Explain the political narrative.
+    - How did government changes impact the project?
+    - What are the geopolitical implications (EU, Bulgaria, Albania, Neighbors)?
   expected_output: >
-    A narrative explanation of the evolution of the topic.
+    A narrative explanation of the political context.
   agent: context_analyst
-  context: [fact_finding_task]
 
 compile_task:
   description: >
-    Aggregate everything into the 'ResearchDossier'.
+    Review all the information gathered from the previous tasks.
+    
+    **YOUR GOAL:** Populate the 'ResearchDossier' schema.
+    
+    **CRITICAL INSTRUCTIONS:**
+    1. **DO NOT** return raw search results or tool outputs.
+    2. **DO NOT** return a Python dictionary. You must output valid JSON matching the schema.
+    3. **SYNTHESIZE** the findings. 
+       - Write a new 'comprehensive_narrative' based on the facts found.
+       - Extract specific 'key_figures' into the list.
+       - Construct the 'timeline' list chronologically.
+       
+    If new info was found in this session, merge it intelligently with any existing knowledge.
   expected_output: >
-    A populated ResearchDossier object.
+    A fully populated ResearchDossier object in valid JSON format.
   agent: strategy_chief
-  context: [fact_finding_task, analysis_task]
 
-# --- WRITING PHASE ---
+# --- PHASE 2: WRITING & EDITING ---
+
 write_task:
   description: >
-    Write a news article in {lang} using the provided Dossier.
+    Write a news article in {lang} based on the provided Dossier.
     
     **USER INSTRUCTIONS:** {instructions}
     
-    **REQUIRED STRUCTURE:**
-    1. **Headline** (Catchy but factual)
-    2. **Dateline** (City, Country - Date)
-    3. **Executive Summary** (3 bullet points max, bolded)
-    4. **The Lede** (Strong opening paragraph)
-    5. **Historical Context** (Narrative prose, no bullets)
-    6. **Current Situation** (Narrative prose, no bullets)
-    7. **Key Figures** (Small markdown table)
-    8. **Timeline of Events** (Chronological list at the bottom)
+    **MANDATORY STRUCTURE (Draft Board):**
+    1. **Headline**
+    2. **Dateline** (City, Country)
+    3. **Executive Summary** (Short paragraph summarizing the article)
+    4. **The Narrative** (Deep dive, strictly chronological, no big gaps, the narrative should be based on the dossier, the dossier is the source of truth)
+    5. **Key Figures Table** (Name | Role (Start-End Date) | Action/Promise) ***Make sure its valid markdown table format***
+    6. **Timeline** (Detailed chronological list at the bottom)
     
-    **CONSTRAINT:** Do NOT use emojis. Keep tone serious.
+    **STYLE:** Serious journalism. No emojis.
   expected_output: >
-    A markdown formatted article string.
+    A draft markdown article.
+  agent: writer
+
+edit_task:
+  description: >
+    Review the draft article.
+    
+    1. **Chronological Accuracy:** Ensure no time jumps or gaps.
+    2. **Fact-Check:** Verify the names and dates in the "Key Figures" table against the Dossier.
+    3. **Tone Check:** Remove any "fluff", buzzwords, or emojis.
+    4. **Final Polish:** Ensure it reads like a Reuters/AP report.
+  expected_output: >
+    The final, polished markdown article string.
   agent: writer
