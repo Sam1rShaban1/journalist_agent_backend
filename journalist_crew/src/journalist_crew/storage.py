@@ -1,5 +1,5 @@
 import sqlite3
-from typing import List, Dict, Optional
+
 from journalist_crew.models import ResearchDossier
 
 DB_FILE = "journalist_studio.db"
@@ -50,7 +50,7 @@ class StorageManager:
         self.conn.commit()
         print(f"💾 Dossier saved. ID: {dossier.id}")
 
-    def load_dossier(self, dossier_id: str) -> Optional[ResearchDossier]:
+    def load_dossier(self, dossier_id: str) -> ResearchDossier | None:
         """Loads a specific research session by ID."""
         cursor = self.conn.cursor()
         cursor.execute('SELECT data FROM dossiers WHERE id = ?', (dossier_id,))
@@ -59,7 +59,7 @@ class StorageManager:
             return ResearchDossier.model_validate_json(row['data'])
         return None
 
-    def list_dossiers(self) -> List[Dict]:
+    def list_dossiers(self) -> list[dict]:
         """Returns a list of all sessions with metadata."""
         cursor = self.conn.cursor()
         cursor.execute('SELECT id, topic, created_at FROM dossiers ORDER BY created_at DESC')
@@ -73,7 +73,7 @@ class StorageManager:
         ''', (dossier_id, content, instructions, lang))
         self.conn.commit()
 
-    def get_article_history(self, dossier_id: str) -> List[Dict]:
+    def get_article_history(self, dossier_id: str) -> list[dict]:
         cursor = self.conn.cursor()
         cursor.execute('''
             SELECT id, content, instructions, language, created_at 

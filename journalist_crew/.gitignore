@@ -1,3 +1,6 @@
 .env
 __pycache__/
 .DS_Store
+uv.lock
+journalist_crew\journalist_studio.db
+journalist_crew\.ruff_cache

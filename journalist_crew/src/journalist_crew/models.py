@@ -1,6 +1,7 @@
 import uuid
+
 from pydantic import BaseModel, Field
-from typing import List
+
 
 class TimelineEvent(BaseModel):
     year: str = Field(..., description="Year or specific date.")
@@ -14,7 +15,7 @@ class KeyFigure(BaseModel):
 class ResearchDossier(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique Session ID")
     topic: str = Field(..., description="The main topic.")
-    executive_summary: List[str] = Field(..., description="High-level summary points.")
+    executive_summary: list[str] = Field(..., description="High-level summary points.")
     comprehensive_narrative: str = Field(..., description="A deep-dive narrative.")
-    key_figures: List[KeyFigure] = Field(..., description="List of major players.")
-    timeline: List[TimelineEvent] = Field(..., description="Chronological list of events.")
+    key_figures: list[KeyFigure] = Field(..., description="List of major players.")
+    timeline: list[TimelineEvent] = Field(..., description="Chronological list of events.")
