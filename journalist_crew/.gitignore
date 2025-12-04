@@ -4,4 +4,4 @@ __pycache__/
 uv.lock
 journalist_crew\journalist_studio.db
 journalist_crew\.ruff_cache
-journalist_crew\.chainlit
+journalist_crew\chainlit.db

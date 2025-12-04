@@ -238,8 +238,69 @@
         "best-practice": "Best Practice"
     },
     "components": {
-        "MultiSelectInput": {
-            "placeholder": "Select..."
+    "atoms": {
+      "buttons": {
+        "userButton": {
+          "menu": {
+            "settings": "Settings",
+            "APIKeys": "API Keys",
+            "logout": "Logout"
+          }
         }
+      },
+      "input": {
+        "chatInput": {
+          "placeholder": "Type your message here..."
+        }
+      }
+    },
+    "organisms": {
+      "chat": {
+        "history": {
+          "index": {
+            "lastInputs": "Last Inputs",
+            "noInputs": "Empty...",
+            "loading": "Loading..."
+          }
+        },
+        "settings": {
+          "settings": "Settings",
+          "theme": "Theme",
+          "expandMessages": "Expand Messages",
+          "hideChainOfThought": "Hide Chain of Thought"
+        }
+      },
+      "threadHistory": {
+        "sidebar": {
+          "delete": "Delete",
+          "deleteAll": "Delete All",
+          "feedback": "Feedback"
+        }
+      }
+    },
+    "MultiSelectInput": {
+        "placeholder": "Select..."
+    },
+    "SelectInput": {
+        "placeholder": "Select..."
     }
+  },
+  "app": {
+    "welcome_title": "## AI Journalist Studio",
+    "welcome_body": "**How to use:**\n1. **Type a Topic** to start researching.\n2. To update, **just type** what is missing.\n3. Click **'Write Article'** when ready.",
+    "history_header": "**Recent Topics:**",
+    "no_history": "No previous research found.",
+    "checking_db": "Checking database for: **{topic}**...",
+    "loaded_existing": "Loaded existing dossier: **{topic}**",
+    "start_research": "Starting research for: **{topic}**...",
+    "research_done": "Initial research complete for: **{topic}**",
+    "digging_deeper": "Digging deeper into: **{topic}**...",
+    "dossier_updated": "Dossier updated with new information.",
+    "write_btn": "Write Article",
+    "rewrite_btn": "Rewrite / New Version",
+    "next_step_prompt": "Continue researching by typing, or generate draft:",
+    "instruction_prompt": "Writing Instructions (e.g., 'Formal Tone'):",
+    "writing_status": "Writing article...",
+    "session_restored": "Welcome back! Session restored."
+  }
 }
