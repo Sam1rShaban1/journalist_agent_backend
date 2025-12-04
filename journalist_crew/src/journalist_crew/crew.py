@@ -17,7 +17,7 @@ class JournalistCrew:
     tasks_config = 'config/tasks.yaml'
 
     def __init__(self):
-        self.search_tool = SerperDevTool()
+        self.search_tool = SerperDevTool(n_results=20)
         self.scrape_tool = ScrapeWebsiteTool()
         self.citation_tool = CitationTool()
 
@@ -88,24 +88,38 @@ class JournalistCrew:
 
 
         # --- LLM CONFIGURATION ---
+        # self.smart_llm = LLM(
+        #     model="openrouter/tngtech/deepseek-r1t2-chimera:free",
+        #     base_url="https://openrouter.ai/api/v1",
+        #     api_key=os.getenv("OPENROUTER_API_KEY"),
+        #     temperature=0.7,
+        #     max_tokens=65536,
+        #     timeout=900,
+        #     max_retries=3
+        # )
+
+        # self.fast_llm = LLM(
+        #     model="openrouter/arcee-ai/trinity-mini:free",
+        #     base_url="https://openrouter.ai/api/v1",
+        #     api_key=os.getenv("OPENROUTER_API_KEY"),
+        #     temperature=0.3,
+        #     max_tokens=65536,
+        #     timeout=900,
+        #     max_retries=3
+        # )
+
         self.smart_llm = LLM(
-            model="openrouter/tngtech/deepseek-r1t2-chimera:free",
-            base_url="https://openrouter.ai/api/v1",
-            api_key=os.getenv("OPENROUTER_API_KEY"),
+            model="gemini/gemini-2.5-flash-lite", # Uses Google Provider directly
+            api_key=os.getenv("GOOGLE_API_KEY"), # Uses your existing Google Key
             temperature=0.7,
-            max_tokens=65536,
-            timeout=240,
-            max_retries=3
+            max_rpm=30
         )
 
         self.fast_llm = LLM(
-            model="openrouter/arcee-ai/trinity-mini:free",
-            base_url="https://openrouter.ai/api/v1",
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            temperature=0.3,
-            max_tokens=65536,
-            timeout=240,
-            max_retries=3
+            model="gemini/gemini-2.5-flash-lite",
+            api_key=os.getenv("GOOGLE_API_KEY"),
+            temperature=0.5,
+            max_rpm=30
         )
 
 

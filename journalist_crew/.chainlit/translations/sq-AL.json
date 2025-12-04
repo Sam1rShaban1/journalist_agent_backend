@@ -18,16 +18,16 @@
     },
     "auth": {
         "login": {
-            "title": "Identifikohuni për të hyrë në aplikacion",
+            "title": "Hyni për të aksesuar aplikacionin",
             "form": {
                 "email": {
-                    "label": "Adresa e emailit",
-                    "required": "emaili është fushë e detyrueshme",
-                    "placeholder": "unë@shembull.com"
+                    "label": "Emri i përdoruesit",
+                    "required": "kërkohet emri i përdoruesit",
+                    "placeholder": "përdoruesi"
                 },
                 "password": {
                     "label": "Fjalëkalimi",
-                    "required": "fjalëkalimi është fushë e detyrueshme"
+                    "required": "kërkohet fjalëkalimi"
                 },
                 "actions": {
                     "signin": "Hyni"
@@ -37,19 +37,19 @@
                 }
             },
             "errors": {
-                "default": "Identifikimi i pamundur",
-                "signin": "Provoni të hyni me një llogari tjetër",
-                "oauthSignin": "Provoni të hyni me një llogari tjetër",
-                "redirectUriMismatch": "URI i ridrejtimit nuk përputhet me konfigurimin e aplikacionit oauth",
-                "oauthCallback": "Provoni të hyni me një llogari tjetër",
-                "oauthCreateAccount": "Provoni të hyni me një llogari tjetër",
-                "emailCreateAccount": "Provoni të hyni me një llogari tjetër",
-                "callback": "Provoni të hyni me një llogari tjetër",
-                "oauthAccountNotLinked": "Për të konfirmuar identitetin tuaj, hyni me të njëjtën llogari që keni përdorur fillimisht",
-                "emailSignin": "Emaili nuk mund të dërgohej",
-                "emailVerify": "Ju lutemi verifikoni emailin tuaj, një email i ri është dërguar",
-                "credentialsSignin": "Hyrja dështoi. Kontrolloni nëse detajet që keni dhënë janë të sakta",
-                "sessionRequired": "Ju lutemi identifikohuni për të hyrë në këtë faqe"
+                "default": "Hyrja e pamundur",
+                "signin": "Provoni të hyni me llogari tjetër",
+                "oauthSignin": "Provoni të hyni me llogari tjetër",
+                "redirectUriMismatch": "URI i ridrejtimit nuk përputhet",
+                "oauthCallback": "Provoni të hyni me llogari tjetër",
+                "oauthCreateAccount": "Provoni të hyni me llogari tjetër",
+                "emailCreateAccount": "Provoni të hyni me llogari tjetër",
+                "callback": "Provoni të hyni me llogari tjetër",
+                "oauthAccountNotLinked": "Identifikohuni me llogarinë origjinale",
+                "emailSignin": "Emaili nuk u dërgua dot",
+                "emailVerify": "Verifikoni emailin tuaj",
+                "credentialsSignin": "Hyrja dështoi. Kontrolloni të dhënat",
+                "sessionRequired": "Ju lutemi identifikohuni"
             }
         },
         "provider": {
@@ -58,10 +58,10 @@
     },
     "chat": {
         "input": {
-            "placeholder": "Shkruani mesazhin tuaj këtu...",
+            "placeholder": "Shkruani mesazhin tuaj...",
             "actions": {
-                "send": "Dërgo mesazhin",
-                "stop": "Ndalo Detyrën",
+                "send": "Dërgo",
+                "stop": "Ndalo",
                 "attachFiles": "Bashkëngjit skedarë"
             }
         },
@@ -84,8 +84,8 @@
                 "cancelled": "U anulua ngarkimi i"
             },
             "actions": {
-                "cancelUpload": "Anulo ngarkimin",
-                "removeAttachment": "Hiq bashkëngjitjen"
+                "cancelUpload": "Anulo",
+                "removeAttachment": "Hiq"
             }
         },
         "messages": {
@@ -95,7 +95,7 @@
             },
             "actions": {
                 "copy": {
-                    "button": "Kopjo në kujtesë",
+                    "button": "Kopjo",
                     "success": "U kopjua!"
                 }
             },
@@ -104,13 +104,13 @@
                 "negative": "Jo e dobishme",
                 "edit": "Ndrysho reagimin",
                 "dialog": {
-                    "title": "Shto një koment",
-                    "submit": "Dërgo reagimin",
+                    "title": "Shto koment",
+                    "submit": "Dërgo",
                     "yourFeedback": "Reagimi juaj..."
                 },
                 "status": {
                     "updating": "Duke përditësuar",
-                    "updated": "Reagimi u përditësua"
+                    "updated": "U përditësua"
                 }
             }
         },
@@ -120,10 +120,10 @@
             "show": "Shfaq historikun"
         },
         "settings": {
-            "title": "Paneli i cilësimeve",
-            "customize": "Përshtatni cilësimet e bisedës këtu"
+            "title": "Cilësimet",
+            "customize": "Përshtatni cilësimet këtu"
         },
-        "watermark": "LLM-të mund të bëjnë gabime. Kontrolloni informacionin e rëndësishëm."
+        "watermark": "AI mund të gabojë. Kontrolloni informacionin."
     },
     "threadHistory": {
         "sidebar": {
@@ -140,12 +140,12 @@
             },
             "empty": "Nuk u gjetën biseda",
             "actions": {
-                "close": "Mbyll shiritin anësor",
-                "open": "Hap shiritin anësor"
+                "close": "Mbyll shiritin",
+                "open": "Hap shiritin"
             }
         },
         "thread": {
-            "untitled": "Bisedë pa titull",
+            "untitled": "Bisedë e re",
             "menu": {
                 "rename": "Riemërto",
                 "share": "Shpërnda",
@@ -153,35 +153,35 @@
             },
             "actions": {
                 "share": {
-                    "title": "Shpërnda lidhjen e bisedës",
+                    "title": "Shpërnda lidhjen",
                     "button": "Shpërnda",
                     "status": {
                         "copied": "Lidhja u kopjua",
-                        "created": "Lidhja e shpërndarjes u krijua!",
-                        "unshared": "Shpërndarja u çaktivizua për këtë bisedë"
+                        "created": "Lidhja u krijua!",
+                        "unshared": "U hoq ndarja"
                     },
                     "error": {
-                        "create": "Krijimi i lidhjes dështoi",
-                        "unshare": "Dështoi heqja e shpërndarjes"
+                        "create": "Dështoi krijimi",
+                        "unshare": "Dështoi heqja"
                     }
                 },
                 "delete": {
                     "title": "Konfirmo fshirjen",
-                    "description": "Kjo do të fshijë bisedën si dhe mesazhet e elementet e saj. Ky veprim nuk mund të zhbëhet",
-                    "success": "Biseda u fshi",
-                    "inProgress": "Duke fshirë bisedën"
+                    "description": "Kjo do të fshijë bisedën. Veprimi është i pakthyeshëm.",
+                    "success": "U fshi",
+                    "inProgress": "Duke fshirë"
                 },
                 "rename": {
-                    "title": "Riemërto Bisedën",
-                    "description": "Shkruani një emër të ri për këtë bisedë",
+                    "title": "Riemërto",
+                    "description": "Shkruani emrin e ri",
                     "form": {
                         "name": {
                             "label": "Emri",
-                            "placeholder": "Shkruani emrin e ri"
+                            "placeholder": "Emri i ri"
                         }
                     },
-                    "success": "Biseda u riemërtua!",
-                    "inProgress": "Duke riemërtuar bisedën"
+                    "success": "U riemërtua!",
+                    "inProgress": "Duke riemërtuar"
                 }
             }
         }
@@ -189,18 +189,18 @@
     "navigation": {
         "header": {
             "chat": "Bisedë",
-            "readme": "LexoMe",
+            "readme": "Info",
             "theme": {
-                "light": "Temë e Çelët",
-                "dark": "Temë e Errët",
-                "system": "Sipas Sistemit"
+                "light": "E Çelët",
+                "dark": "E Errët",
+                "system": "Sistemi"
             }
         },
         "newChat": {
             "button": "Bisedë e Re",
             "dialog": {
                 "title": "Krijo Bisedë të Re",
-                "description": "Kjo do të pastrojë historikun aktual të bisedës. Jeni të sigurt që doni të vazhdoni?",
+                "description": "Kjo pastron ekranin. Vazhdoni?",
                 "tooltip": "Bisedë e Re"
             }
         },
@@ -214,10 +214,10 @@
         }
     },
     "apiKeys": {
-        "title": "Çelësat API të Kërkuar",
-        "description": "Për të përdorur këtë aplikacion, kërkohen çelësat e mëposhtëm API. Çelësat ruhen në kujtesën lokale të pajisjes tuaj.",
+        "title": "Çelësat API",
+        "description": "Kërkohen çelësat API.",
         "success": {
-            "saved": "U ruajt me sukses"
+            "saved": "U ruajt"
         }
     },
     "alerts": {
@@ -225,8 +225,8 @@
         "note": "Shënim",
         "tip": "Këshillë",
         "important": "E Rëndësishme",
-        "warning": "Paralajmërim",
-        "caution": "Kujdes",
+        "warning": "Kujdes",
+        "caution": "Vëmendje",
         "debug": "Debug",
         "example": "Shembull",
         "success": "Sukses",
@@ -235,11 +235,72 @@
         "pending": "Në pritje",
         "security": "Siguria",
         "beta": "Beta",
-        "best-practice": "Praktika më e mirë"
+        "best-practice": "Praktika"
     },
     "components": {
-        "MultiSelectInput": {
-            "placeholder": "Zgjidhni..."
+    "atoms": {
+      "buttons": {
+        "userButton": {
+          "menu": {
+            "settings": "Cilësimet",
+            "APIKeys": "Çelësat API",
+            "logout": "Dilni"
+          }
         }
+      },
+      "input": {
+        "chatInput": {
+          "placeholder": "Shkruani mesazhin tuaj..."
+        }
+      }
+    },
+    "organisms": {
+      "chat": {
+        "history": {
+          "index": {
+            "lastInputs": "Hyrjet e fundit",
+            "noInputs": "Zbrazët...",
+            "loading": "Duke u ngarkuar..."
+          }
+        },
+        "settings": {
+          "settings": "Cilësimet",
+          "theme": "Tema",
+          "expandMessages": "Zgjero Mesazhet",
+          "hideChainOfThought": "Fshih Procesin e Mendimit"
+        }
+      },
+      "threadHistory": {
+        "sidebar": {
+          "delete": "Fshi",
+          "deleteAll": "Fshi të gjitha",
+          "feedback": "Feedback"
+        }
+      }
+    },
+    "MultiSelectInput": {
+        "placeholder": "Zgjidhni..."
+    },
+    "SelectInput": {
+        "placeholder": "Zgjidhni..."
     }
+  },
+  "app": {
+    "welcome_title": "## Studio Gazetarie AI",
+    "welcome_body": "**Si funksionon:**\n1. **Shkruani një Temë** për të filluar kërkimin.\n2. Për të përditësuar, **thjesht shkruani** çfarë mungon.\n3. Klikoni **'Shkruaj Artikull'** kur jeni gati.",
+    "history_header": "**Temat e mëparshme:**",
+    "no_history": "Nuk u gjetën kërkime të mëparshme.",
+    "checking_db": "Duke kontrolluar bazën e të dhënave për: **{topic}**...",
+    "loaded_existing": "U ngarkua dosja ekzistuese: **{topic}**",
+    "start_research": "Duke filluar kërkimin për: **{topic}**...",
+    "research_done": "Kërkimi fillestar përfundoi për: **{topic}**",
+    "digging_deeper": "Duke kërkuar më thellë për: **{topic}**...",
+    "dossier_updated": "Dosja u përditësua me informacionin e ri.",
+    "write_btn": "Shkruaj Artikull",
+    "rewrite_btn": "Rishkruaj / Tjetër Version",
+    "next_step_prompt": "Vazhdoni kërkimin duke shkruar, ose gjeneroni artikullin:",
+    "instruction_prompt": "Udhëzime për artikullin (p.sh. 'Tone Serioz'):",
+    "writing_status": "Duke shkruar artikullin...",
+    "session_restored": "Mirësevini përsëri! Seanca u rikthye."
+  }
 }

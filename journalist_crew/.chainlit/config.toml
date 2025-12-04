@@ -25,6 +25,7 @@ allow_origins = ["*"]
 [features]
 # Process and display HTML in messages. This can be a security risk (see https://stackoverflow.com/questions/19603097/why-is-it-dangerous-to-render-user-generated-html-or-javascript)
 unsafe_allow_html = false
+notifications = true
 
 # Process and display mathematical expressions. This can clash with "$" characters in messages.
 latex = false
@@ -90,6 +91,8 @@ name = "Journalist Studio"
 
 # default_theme = "dark"
 
+# default_lang = "en-US"
+
 # layout = "wide"
 
 # default_sidebar_state = "open"
@@ -112,7 +115,7 @@ cot = "tool_call"
 # custom_js = "/public/test.js"
 
 # The style of alert boxes. Can be "classic" or "modern".
-alert_style = "classic"
+alert_style = "modern"
 
 # Specify additional attributes for custom JS file
 # custom_js_attributes = "async type = \"module\""
@@ -148,6 +151,10 @@ default_avatar_file_url = ""
 #     icon_url = "https://avatars.githubusercontent.com/u/128686189?s=200&v=4"
 #     url = "https://github.com/Chainlit/chainlit/issues"
 #     target = "_blank" (default)  # Optional: "_self", "_parent", "_top".
+
+
+[data_persistence]
+enabled = true
 
 
 [meta]
