@@ -2,8 +2,9 @@ import os
 
 from crewai import LLM, Agent, Crew, Task
 from crewai.project import CrewBase, agent
-from crewai_tools import PDFSearchTool, ScrapeWebsiteTool, SerperDevTool, WebsiteSearchTool, YoutubeVideoSearchTool
+from crewai_tools import ScrapeWebsiteTool, SerperDevTool
 
+from journalist_crew.tools.citation_tool import CitationTool
 from journalist_crew.models import ResearchDossier
 from journalist_crew.storage import StorageManager
 
@@ -18,6 +19,7 @@ class JournalistCrew:
     def __init__(self):
         self.search_tool = SerperDevTool()
         self.scrape_tool = ScrapeWebsiteTool()
+        self.citation_tool = CitationTool()
 
         # self.site_search_tool = WebsiteSearchTool(
         #     config=dict(
@@ -87,21 +89,21 @@ class JournalistCrew:
 
         # --- LLM CONFIGURATION ---
         self.smart_llm = LLM(
-            model="openrouter/x-ai/grok-4.1-fast:free",
+            model="openrouter/tngtech/deepseek-r1t2-chimera:free",
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
             temperature=0.7,
-            max_tokens=16384,
+            max_tokens=65536,
             timeout=240,
             max_retries=3
         )
 
         self.fast_llm = LLM(
-            model="openrouter/x-ai/grok-4.1-fast:free",
+            model="openrouter/arcee-ai/trinity-mini:free",
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
             temperature=0.3,
-            max_tokens=16384,
+            max_tokens=65536,
             timeout=240,
             max_retries=3
         )
@@ -111,7 +113,10 @@ class JournalistCrew:
     def strategy_chief(self) -> Agent:
         return Agent(
             config=self.agents_config['strategy_chief'],
-            tools=[self.search_tool], # self.site_search_tool
+            tools=[
+            self.search_tool,
+            self.citation_tool
+            ], # self.site_search_tool
             verbose=True,
             llm=self.smart_llm
         )
@@ -123,7 +128,7 @@ class JournalistCrew:
             tools=[
                 self.search_tool,
                 self.scrape_tool,
-                
+                self.citation_tool
             ],
             # self.pdf_tool,
             # self.youtube_tool
@@ -135,7 +140,11 @@ class JournalistCrew:
     def context_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config['context_analyst'],
-            tools=[self.search_tool, self.scrape_tool],
+            tools=[
+                self.search_tool,
+                self.scrape_tool,
+                self.citation_tool
+            ],
             verbose=True,
             llm=self.smart_llm
         )
@@ -148,27 +157,56 @@ class JournalistCrew:
             llm=self.smart_llm
         )
 
+    def _merge_dossiers(self, old: ResearchDossier, new: ResearchDossier) -> ResearchDossier:
+        print("Merging new findings into existing dossier...")
+        
+        new.id = old.id 
+        
+        new.comprehensive_narrative = (
+            f"{old.comprehensive_narrative}\n\n"
+            f"--- UPDATE: NEW FINDINGS ---\n"
+            f"{new.comprehensive_narrative}"
+        )
+
+        existing_events = {(e.year, e.event) for e in old.timeline}
+        for event in new.timeline:
+            if (event.year, event.event) not in existing_events:
+                old.timeline.append(event)
+        old.timeline.sort(key=lambda x: x.year)
+        new.timeline = old.timeline
+
+        existing_figures = {f.name.lower(): f for f in old.key_figures}
+        for fig in new.key_figures:
+            if fig.name.lower() in existing_figures:
+                existing_figures[fig.name.lower()].impact += f"; {fig.impact}"
+            else:
+                old.key_figures.append(fig)
+        new.key_figures = old.key_figures
+
+        existing_urls = {s.url for s in old.sources}
+        for src in new.sources:
+            if src.url not in existing_urls:
+                old.sources.append(src)
+        new.sources = old.sources
+
+        return new
 
     def load_context(self, dossier_id: str) -> bool:
-        """Loads a specific dossier by UUID."""
-        print(f"🔎 Loading Session ID: {dossier_id}...")
+        print(f"Loading Session ID: {dossier_id}...")
         dossier = self.db.load_dossier(dossier_id)
         if dossier:
             self.current_dossier = dossier
-            print(f"✅ Loaded Topic: '{dossier.topic}'")
+            print(f"Loaded Topic: '{dossier.topic}'")
             return True
         return False
 
     def run_research(self, topic: str, instructions: str = ""):
-        print(f"\n🚀 Starting Research Session on: {topic}")
-
-        existing_id = None
+        print(f"\nStarting Research Session on: {topic}")
+        
+        is_update = False
         if self.current_dossier:
-            existing_id = self.current_dossier.id
-            print(f"🔄 Updating existing Dossier ID: {existing_id}")
-
-        if instructions:
-            print(f"🎯 Focus: {instructions}")
+            is_update = True
+            print(f"Detected Update Mode for ID: {self.current_dossier.id}")
 
         strategy = self.strategy_chief()
         hunter = self.timeline_hunter()
@@ -177,10 +215,10 @@ class JournalistCrew:
         plan = Task(config=self.tasks_config['plan_task'], agent=strategy)
         facts = Task(config=self.tasks_config['fact_finding_task'], agent=hunter)
         analysis = Task(config=self.tasks_config['analysis_task'], agent=analyst)
-
+        
         compile_t = Task(
-            config=self.tasks_config['compile_task'],
-            agent=strategy,
+            config=self.tasks_config['compile_task'], 
+            agent=strategy, 
             output_pydantic=ResearchDossier
         )
 
@@ -188,27 +226,23 @@ class JournalistCrew:
             agents=[strategy, hunter, analyst],
             tasks=[plan, facts, analysis, compile_t],
             verbose=True,
-            max_rpm=30
+            max_rpm=10
         )
 
-        # Context Injection
         search_query = topic
         if instructions:
-            old_data_context = ""
-            if self.current_dossier:
-                old_data_context = f"\n\nEXISTING KNOWLEDGE TO UPDATE:\n{self.current_dossier.model_dump_json()}"
 
-            search_query = f"{topic}. SPECIFIC FOCUS: {instructions}. (Context: North Macedonia/Balkans){old_data_context}"
+            search_query = f"{topic}. FOCUS STRICTLY ON FINDING THIS NEW INFO: {instructions}. (Context: North Macedonia/Balkans)"
 
         result = research_crew.kickoff(inputs={"question": search_query})
+        new_dossier = result.pydantic
 
-        if existing_id:
-            result.pydantic.id = existing_id
-
-        self.current_dossier = result.pydantic
+        if is_update:
+            self.current_dossier = self._merge_dossiers(self.current_dossier, new_dossier)
+        else:
+            self.current_dossier = new_dossier
 
         self.db.save_dossier(self.current_dossier)
-
         return self.current_dossier
 
     def run_writer(self, instructions: str, lang: str):

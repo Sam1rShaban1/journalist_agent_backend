@@ -15,7 +15,7 @@ def main():
     crew_instance = JournalistCrew()
     
     print("=================================================")
-    print("🗞️  AI JOURNALIST STUDIO - SESSION MANAGEMENT")
+    print("AI JOURNALIST STUDIO - SESSION MANAGEMENT")
     print("=================================================")
 
     # 1. List Sessions from the internal DB
