@@ -4,9 +4,9 @@ plan_task:
   description: >
     Analyze "{question}". 
     Create a strategic research plan that targets:
-    1. **Origins:** Who started it? Which government?
-    2. **Development & Controversy:** Corruption, delays, funding issues.
-    3. **Current Status:** Who is in charge now? What is the opposition saying?
+    1. **Origins (The Why):** Who started it? Which specific government/year (e.g., 1994, 2008)?
+    2. **The Money:** Specific tender amounts, loans (EBRD, World Bank), and budget allocations.
+    3. **The People:** Specific Ministers of Transport, Directors of State Roads, Prime Ministers.
     
     **CONTEXT LOCK:** The topic is strictly **North Macedonia / Balkans**.
   expected_output: >
@@ -21,19 +21,26 @@ fact_finding_task:
     2. **Deep-Dive:** Extract full text, not just snippets.
     3. **MANDATORY NAMES:** Find the specific Prime Ministers, Ministers, Directors and all key people involved.
     4. **DATES:** Every event must have a specific date (Year/Month).
+    5. **CITATIONS:** You MUST use the `Citation Formatter` tool for every verified fact to generate a clickable link.
+    
+    **INSTRUCTIONS FOR DEPTH:**
+    - Find **Direct Quotes** from politicians regarding the project.
+    - Find **Specific Euro Amounts** for contracts.
+    - Find **Company Names** (Construction firms, supervision).
     
     **Constraint:** Do not hallucinate. If you can't find a name, state "Unknown".
   expected_output: >
-    A raw chronological list of verified events and names.
+    A raw chronological list of verified events, names, and quotes with inline markdown citations.
   agent: timeline_hunter
 
 analysis_task:
   description: >
     Review the facts. Explain the political narrative.
-    - How did government changes impact the project?
+    - Dedicate analysis to the VMRO-DPMNE era handling of the topic.
+    - Dedicate analysis to the SDSM/DUI era handling of the topic.
     - What are the geopolitical implications (EU, Bulgaria, Albania, Neighbors)?
   expected_output: >
-    A narrative explanation of the political context.
+    A detailed narrative explanation of the political context.
   agent: context_analyst
 
 compile_task:
@@ -46,44 +53,52 @@ compile_task:
     1. **DO NOT** return raw search results or tool outputs.
     2. **DO NOT** return a Python dictionary. You must output valid JSON matching the schema.
     3. **SYNTHESIZE** the findings. 
-       - Write a new 'comprehensive_narrative' based on the facts found.
+       - Write a new 'comprehensive_narrative' based on the facts found. **Preserve the inline citations.**
        - Extract specific 'key_figures' into the list.
        - Construct the 'timeline' list chronologically.
+       - Populate the 'sources' list with every unique URL found.
+    
+    **LENGTH RULE:** Do not summarize details. Copy the detailed findings into the narrative. If the analysis is long, KEEP IT LONG.
        
     If new info was found in this session, merge it intelligently with any existing knowledge.
   expected_output: >
-    A fully populated ResearchDossier object in valid JSON format.
+    A fully populated ResearchDossier object in valid JSON format including sources.
   agent: strategy_chief
 
 # --- PHASE 2: WRITING & EDITING ---
 
 write_task:
   description: >
-    Write a news article in {lang} based on the provided Dossier.
+    Write a **LONG-FORM INVESTIGATIVE FEATURE** (2000+ words) in {lang} based on the provided Dossier.
     
     **USER INSTRUCTIONS:** {instructions}
     
     **MANDATORY STRUCTURE (Draft Board):**
-    1. **Headline**
-    2. **Dateline** (City, Country)
-    3. **Executive Summary** (Short paragraph summarizing the article)
-    4. **The Narrative** (Deep dive, strictly chronological, no big gaps, the narrative should be based on the dossier, the dossier is the source of truth)
+    1. **Headline** (Catchy but factual)
+    2. **Dateline** (Date, Year, City, Country)
+    3. **Executive Summary** (Short paragraph summarizing the article, include the people and dates if appropriate)
+    4. **The Narrative** (Deep dive, strictly chronological, no big gaps).
+       - *This section must be lengthy.* 
+       - *Cover the Origins, The Political Battles, and The Financial Details.*
+       - *Include the clickable citations from the dossier.*
     5. **Key Figures Table** (Name | Role (Start-End Date) | Action/Promise) ***Make sure its valid markdown table format***
     6. **Timeline** (Detailed chronological list at the bottom)
-    
+    7. **Sources** (List of all the sources used in order they're used)
+
     **STYLE:** Serious journalism. No emojis.
   expected_output: >
-    A draft markdown article.
+    A detailed, long-form markdown article.
   agent: writer
 
 edit_task:
   description: >
     Review the draft article.
     
-    1. **Chronological Accuracy:** Ensure no time jumps or gaps.
-    2. **Fact-Check:** Verify the names and dates in the "Key Figures" table against the Dossier.
-    3. **Tone Check:** Remove any "fluff", buzzwords, or emojis.
-    4. **Final Polish:** Ensure it reads like a Reuters/AP report.
+    1. **Length Check:** If the narrative feels rushed or short, expand it using data from the Dossier.
+    2. **Chronological Accuracy:** Ensure no time jumps or gaps.
+    3. **Fact-Check:** Verify the names and dates in the "Key Figures" table against the Dossier.
+    4. **Tone Check:** Remove any "fluff", buzzwords, or emojis.
+    5. **Final Polish:** Ensure it reads like a Reuters/AP report.
   expected_output: >
     The final, polished markdown article string.
   agent: writer

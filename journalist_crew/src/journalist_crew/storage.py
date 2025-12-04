@@ -1,5 +1,5 @@
 import sqlite3
-
+from typing import List, Dict, Optional
 from journalist_crew.models import ResearchDossier
 
 DB_FILE = "journalist_studio.db"
@@ -13,17 +13,18 @@ class StorageManager:
     def _init_db(self):
         cursor = self.conn.cursor()
         
-        # 1. Dossiers Table (Now keyed by UUID)
+        # 1. Dossiers Table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS dossiers (
                 id TEXT PRIMARY KEY,
                 topic TEXT,
                 data TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
 
-        # 2. Articles Table (Links to Dossier ID, not Topic Name)
+        # 2. Articles Table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS articles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,25 +33,30 @@ class StorageManager:
                 instructions TEXT,
                 language TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(dossier_id) REFERENCES dossiers(id)
             )
         ''')
         self.conn.commit()
 
     def save_dossier(self, dossier: ResearchDossier):
-        """Saves or updates the dossier using its UUID."""
+        """Saves dossier. Updates modified_at automatically on save."""
         cursor = self.conn.cursor()
         json_data = dossier.model_dump_json()
         
-        # We use INSERT OR REPLACE so we can update existing sessions too
         cursor.execute('''
-            INSERT OR REPLACE INTO dossiers (id, topic, data, created_at)
-            VALUES (?, ?, ?, COALESCE((SELECT created_at FROM dossiers WHERE id = ?), CURRENT_TIMESTAMP))
-        ''', (dossier.id, dossier.topic, json_data, dossier.id))
+            INSERT INTO dossiers (id, topic, data, created_at, modified_at)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT(id) DO UPDATE SET
+                topic=excluded.topic,
+                data=excluded.data,
+                modified_at=CURRENT_TIMESTAMP
+        ''', (dossier.id, dossier.topic, json_data))
+        
         self.conn.commit()
-        print(f"💾 Dossier saved. ID: {dossier.id}")
+        print(f"Dossier saved. ID: {dossier.id}")
 
-    def load_dossier(self, dossier_id: str) -> ResearchDossier | None:
+    def load_dossier(self, dossier_id: str) -> Optional[ResearchDossier]:
         """Loads a specific research session by ID."""
         cursor = self.conn.cursor()
         cursor.execute('SELECT data FROM dossiers WHERE id = ?', (dossier_id,))
@@ -59,21 +65,25 @@ class StorageManager:
             return ResearchDossier.model_validate_json(row['data'])
         return None
 
-    def list_dossiers(self) -> list[dict]:
-        """Returns a list of all sessions with metadata."""
+    def list_dossiers(self) -> List[Dict]:
+        """Returns list sorted by LAST MODIFIED (most recent first)."""
         cursor = self.conn.cursor()
-        cursor.execute('SELECT id, topic, created_at FROM dossiers ORDER BY created_at DESC')
+        cursor.execute('''
+            SELECT id, topic, created_at, modified_at 
+            FROM dossiers 
+            ORDER BY modified_at DESC
+        ''')
         return [dict(row) for row in cursor.fetchall()]
 
     def save_article(self, dossier_id: str, content: str, instructions: str, lang: str):
         cursor = self.conn.cursor()
         cursor.execute('''
-            INSERT INTO articles (dossier_id, content, instructions, language)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO articles (dossier_id, content, instructions, language, created_at, modified_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ''', (dossier_id, content, instructions, lang))
         self.conn.commit()
 
-    def get_article_history(self, dossier_id: str) -> list[dict]:
+    def get_article_history(self, dossier_id: str) -> List[Dict]:
         cursor = self.conn.cursor()
         cursor.execute('''
             SELECT id, content, instructions, language, created_at 
