@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    container_name: journalist_backend
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+    networks:
+      - journalist_net
+
+  nginx:
+    image: nginx:latest
+    container_name: journalist_proxy
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app
+    networks:
+      - journalist_net
+
+networks:
+  journalist_net:
+    driver: bridge
