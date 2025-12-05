@@ -1,6 +1,8 @@
 import os
 import json
 import sqlite3
+import datetime
+import uuid
 import chainlit as cl
 from journalist_crew.crew import JournalistCrew
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
@@ -59,19 +61,19 @@ def format_dossier_to_markdown(dossier):
     for point in dossier.executive_summary:
         md += f"- {point}\n"
     
-    md += "\n### Comprehensive Narrative\n"
+    md += "\n### Narrative\n"
     md += f"{dossier.comprehensive_narrative}\n"
     
-    md += "\n### Timeline of Events\n"
+    md += "\n### Timeline\n"
     for event in dossier.timeline:
         md += f"- **{event.year}**: {event.event}\n"
 
     md += "\n### Key Figures\n"
     md += "| Name | Role | Impact |\n|---|---|---|\n"
     for fig in dossier.key_figures:
-        c_name = fig.name.replace("|", "-")
-        c_role = fig.role.replace("|", "-")
-        c_impact = fig.impact.replace("|", "-")
+        c_name = str(fig.name).replace("|", "-")
+        c_role = str(fig.role).replace("|", "-")
+        c_impact = str(fig.impact).replace("|", "-")
         md += f"| {c_name} | {c_role} | {c_impact} |\n"
     
     if hasattr(dossier, 'sources') and dossier.sources:
@@ -81,75 +83,101 @@ def format_dossier_to_markdown(dossier):
 
     return md
 
-async def show_dossier_and_actions(dossier):
-    formatted_content = format_dossier_to_markdown(dossier)
-    
-    actions = [
-        cl.Action(
-            name="write_article", 
-            value="write", 
-            label=t("write_btn"), 
-            payload={}
-        )
-    ]
-    
-    await cl.Message(content=formatted_content, actions=actions).send()
-    
+# --- 5. HELPER: ACTIONS ---
+async def send_write_action():
+    """Show research-ready text and a clearly visible Write Article action."""
+
+    # 1) Normal message for full-width text
     await cl.Message(
-        content="Options:\n1. Click 'Write Article' to generate a draft.\n2. Or type below to dig deeper/update the research."
+        content="⬇**Research Ready.** Click the button below to Write, or type to research more.",
     ).send()
 
-# --- 5. HELPER: MANUAL DB UPDATES (Fixes Missing Functions) ---
+    # 2) Separate action message so the button always renders and triggers callbacks
+    unique_id = f"action-write_{uuid.uuid4().hex[:8]}"
+
+    actions = [
+        cl.Action(
+            name="write_article",
+            value="write",
+            label=t("write_btn"),
+            payload={},
+            id=unique_id,
+        )
+    ]
+
+    await cl.Message(
+        content=" ",  # keep a minimal body so Chainlit renders the action block
+        actions=actions,
+    ).send()
+
+async def show_dossier_and_actions(dossier):
+    formatted_content = format_dossier_to_markdown(dossier)
+    await cl.Message(content=formatted_content).send()
+    await send_write_action()
+
+# --- 6. DB HELPERS ---
 def manual_rename_thread(thread_id, new_name):
-    """Manually updates the thread name in SQLite."""
+    """Safe renaming."""
     try:
         conn = sqlite3.connect("chainlit.db")
         c = conn.cursor()
         c.execute('UPDATE threads SET name = ? WHERE id = ?', (new_name, thread_id))
         conn.commit()
         conn.close()
-    except Exception:
-        pass
+    except Exception: pass
 
 def manual_update_metadata(thread_id, metadata_dict):
-    """Manually updates the thread metadata in SQLite."""
+    """Safe metadata update - PREVENTS CRASHES."""
     try:
         conn = sqlite3.connect("chainlit.db")
         c = conn.cursor()
         json_meta = json.dumps(metadata_dict)
+        
+        # CRITICAL: Only update if row exists. Do not Insert.
         c.execute('UPDATE threads SET metadata = ? WHERE id = ?', (json_meta, thread_id))
+        
+        if c.rowcount == 0:
+            # If thread doesn't exist yet (rare race condition), insert it safely
+            c.execute("""
+                INSERT INTO threads ("id", "createdAt", "metadata") 
+                VALUES (?, ?, ?)
+            """, (thread_id, datetime.datetime.now().isoformat(), json_meta))
+            
         conn.commit()
         conn.close()
-    except Exception:
-        pass
+    except Exception as e: 
+        print(f"Metadata Error (Ignored): {e}")
 
-# --- 6. SYNC LOGIC ---
 def sync_dossiers_to_sidebar(user_identifier):
-    j_conn = sqlite3.connect("journalist_studio.db")
-    j_cursor = j_conn.cursor()
-    j_cursor.execute("SELECT id, topic, created_at FROM dossiers")
-    dossiers = j_cursor.fetchall()
-    j_conn.close()
+    try:
+        if not os.path.exists("journalist_studio.db"): return
 
-    c_conn = sqlite3.connect("chainlit.db")
-    c_cursor = c_conn.cursor()
-    c_cursor.execute('SELECT "id" FROM threads WHERE "userId" = ?', (user_identifier,))
-    existing_threads = {row[0] for row in c_cursor.fetchall()}
+        j_conn = sqlite3.connect("journalist_studio.db")
+        j_cursor = j_conn.cursor()
+        j_cursor.execute("SELECT id, topic, created_at FROM dossiers")
+        dossiers = j_cursor.fetchall()
+        j_conn.close()
 
-    count = 0
-    for doc_id, topic, created_at in dossiers:
-        if doc_id not in existing_threads:
-            c_cursor.execute("""
-                INSERT INTO threads ("id", "createdAt", "name", "userId", "userIdentifier", "metadata")
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                doc_id, created_at, topic, user_identifier, user_identifier, 
-                json.dumps({"dossier_id": doc_id, "topic_name": topic})
-            ))
-            count += 1
-    if count > 0:
-        c_conn.commit()
-    c_conn.close()
+        c_conn = sqlite3.connect("chainlit.db")
+        c_cursor = c_conn.cursor()
+        c_cursor.execute('SELECT "id" FROM threads WHERE "userId" = ?', (user_identifier,))
+        existing_threads = {row[0] for row in c_cursor.fetchall()}
+
+        count = 0
+        for doc_id, topic, created_at in dossiers:
+            if doc_id not in existing_threads:
+                safe_created_at = created_at if created_at else datetime.datetime.now().isoformat()
+                c_cursor.execute("""
+                    INSERT INTO threads ("id", "createdAt", "name", "userId", "userIdentifier", "metadata")
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    doc_id, safe_created_at, topic, user_identifier, user_identifier, 
+                    json.dumps({"dossier_id": doc_id, "topic_name": topic})
+                ))
+                count += 1
+        if count > 0: c_conn.commit()
+        c_conn.close()
+    except Exception: pass
 
 # --- 7. EVENT HANDLERS ---
 @cl.on_chat_resume
@@ -157,44 +185,49 @@ async def on_resume(thread: dict):
     crew = JournalistCrew()
     cl.user_session.set("crew", crew)
 
-    metadata = thread.get("metadata") or {}
+    metadata = thread.get("metadata")
+    if isinstance(metadata, str):
+        try: metadata = json.loads(metadata)
+        except: metadata = {}
+    if not metadata: metadata = {}
+    
     dossier_id = metadata.get("dossier_id") or thread.get("id")
 
     if dossier_id and crew.load_context(dossier_id):
         await cl.Message(content=t("session_restored")).send()
         await show_dossier_and_actions(crew.current_dossier)
     else:
-        await cl.Message(content="Could not link this chat to the database.").send()
+        await cl.Message(content="Could not load research data.").send()
 
 @cl.on_chat_start
 async def start():
     user = cl.user_session.get("user")
-    if user:
-        sync_dossiers_to_sidebar(user.identifier)
-
+    if user: sync_dossiers_to_sidebar(user.identifier)
     crew = JournalistCrew()
     cl.user_session.set("crew", crew)
     
-    settings = await cl.ChatSettings(
-        [
-            Select(id="Language", label="Article Language", values=["Albanian", "English", "Macedonian"], initial_index=0),
-            Select(id="Tone", label="Writing Tone", values=["Serious", "Neutral"], initial_index=0),
-            TextInput(id="Focus", label="Focus", initial="Corruption")
-        ]
-    ).send()
+    settings = await cl.ChatSettings([
+        Select(id="Language", label="Article Language", values=["Albanian", "English", "Macedonian"], initial_index=0),
+        Select(id="Tone", label="Writing Tone", values=["Serious", "Neutral"], initial_index=0),
+        TextInput(id="Focus", label="Focus", initial="Corruption")
+    ]).send()
     cl.user_session.set("article_settings", settings)
-
     await cl.Message(content=f"{t('welcome_title')}\n\n{t('welcome_body')}").send()
 
 @cl.on_settings_update
 async def setup_agent(settings):
     cl.user_session.set("article_settings", settings)
+    await cl.Message(content=f"Settings Updated.").send()
 
+# --- 8. MAIN CHAT LOOP ---
 @cl.on_message
 async def main(message: cl.Message):
     crew = cl.user_session.get("crew")
     user_input = message.content
     
+    loader_msg = cl.Message(content="⏳ **Agents are working...**")
+    await loader_msg.send()
+
     if not crew.current_dossier:
         # NEW RESEARCH
         if cl.context.session.thread_id:
@@ -202,7 +235,6 @@ async def main(message: cl.Message):
 
         async with cl.Step(name="Research Agent", type="run") as step:
             step.input = user_input
-            
             if crew.load_context(user_input):
                 step.output = "Loaded from Database."
             else:
@@ -212,52 +244,65 @@ async def main(message: cl.Message):
         if crew.current_dossier:
             cl.user_session.set("dossier_id", crew.current_dossier.id)
             
-            # FIX: Manual update instead of crashing
             if cl.context.session.thread_id:
                 manual_update_metadata(cl.context.session.thread_id, {
                     "dossier_id": crew.current_dossier.id,
                     "topic_name": crew.current_dossier.topic
                 })
         
+        await loader_msg.remove()
         await show_dossier_and_actions(crew.current_dossier)
         
     else:
-        # UPDATE RESEARCH
+        # DIG DEEPER
         topic = crew.current_dossier.topic
-        
         async with cl.Step(name="Research Agent", type="run") as step:
             step.input = f"Digging deeper: {user_input}"
             await cl.make_async(crew.run_research)(topic, instructions=user_input)
             step.output = "Dossier Updated."
         
+        await loader_msg.remove()
         await show_dossier_and_actions(crew.current_dossier)
+
+# --- 9. ACTIONS ---
 
 @cl.action_callback("write_article")
 async def on_write(action):
     settings = cl.user_session.get("article_settings")
-    lang_pref = settings["Language"] if settings else "Albanian"
+    if not settings: settings = {"Language": "Albanian", "Tone": "Serious"}
     
-    res = await cl.AskUserMessage(
-        content=t("instruction_prompt"), 
-        timeout=600
-    ).send()
+    lang_pref = settings.get("Language", "Albanian")
+    tone_pref = settings.get("Tone", "Serious")
+
+    custom_instructions = ""
+    if action.payload:
+        custom_instructions = action.payload.get("instructions", "").strip()
+
+    instructions = f"TONE: {tone_pref}. "
+    focus_pref = settings.get("Focus")
+    if custom_instructions:
+        instructions += f"USER INSTRUCTIONS: {custom_instructions}"
+    elif focus_pref:
+        instructions += f"Focus on {focus_pref}."
+    else:
+        instructions += "Write a standard investigative article."
+
+    crew = cl.user_session.get("crew")
+    target_lang = "Albanian" if "albanian" in lang_pref.lower() else "English"
+    if custom_instructions.lower().find("english") != -1:
+        target_lang = "English"
+    elif custom_instructions.lower().find("albanian") != -1:
+        target_lang = "Albanian"
+
+    loader = cl.Message(content="Writing Article...")
+    await loader.send()
+
+    async with cl.Step(name="Writer Agent", type="run") as step:
+        step.input = instructions
+        article = await cl.make_async(crew.run_writer)(instructions, target_lang)
+        step.output = "Draft Generated."
     
-    if res:
-        instructions = res["output"]
-        crew = cl.user_session.get("crew")
-        
-        async with cl.Step(name="Writer Agent", type="run") as step:
-            step.input = instructions
-            target_lang = lang_pref 
-            if "english" in instructions.lower(): target_lang = "English"
-            if "albanian" in instructions.lower(): target_lang = "Albanian"
-            
-            article = await cl.make_async(crew.run_writer)(instructions, target_lang)
-            step.output = "Draft Generated."
-        
-        await cl.Message(content=article).send()
-        
-        actions = [
-            cl.Action(name="write_article", value="write", label=t("rewrite_btn"), payload={})
-        ]
-        await cl.Message(content="Options:", actions=actions).send()
+    await loader.remove()
+    await cl.Message(content=article).send()
+    
+    await send_write_action()

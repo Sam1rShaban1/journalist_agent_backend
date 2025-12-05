@@ -1,8 +1,10 @@
 import sqlite3
 
+# DB_FILE = "data/chainlit.db"
 DB_FILE = "chainlit.db"
 
 def init_db():
+    # os.makedirs("data", exist_ok=True)
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 

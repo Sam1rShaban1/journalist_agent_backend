@@ -89,11 +89,11 @@ reaction_on_message_received = false
 # Name of the assistant.
 name = "Journalist Studio"
 
-# default_theme = "dark"
+default_theme = "dark"
 
 # default_lang = "en-US"
 
-# layout = "wide"
+# layout = "standard"
 
 # default_sidebar_state = "open"
 
@@ -101,11 +101,11 @@ name = "Journalist Studio"
 # description = "Deep research and professional news writing agent."
 
 # Chain of Thought (CoT) display mode. Can be "hidden", "tool_call" or "full".
-cot = "tool_call"
+cot = "hidden"
 
 # Specify a CSS file that can be used to customize the user interface.
 # The CSS file can be served from the public directory or via an external link.
-# custom_css = "/public/test.css"
+custom_css = "/public/style.css"
 
 # Specify additional attributes for a custom CSS file
 # custom_css_attributes = "media=\"print\""
