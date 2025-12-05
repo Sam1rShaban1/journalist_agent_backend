@@ -5,3 +5,4 @@ uv.lock
 journalist_crew\journalist_studio.db
 journalist_crew\.ruff_cache
 journalist_crew\chainlit.db
+journalist_crew\src\journalist_crew\test-ui.py

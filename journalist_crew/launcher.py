@@ -7,15 +7,15 @@ def main():
     os.makedirs("data", exist_ok=True)
 
     # 2. Check if Chainlit DB exists
-    if not os.path.exists("data/chainlit.db"):
-        print("🚀 First run detected. Initializing Database Schema...")
-        try:
-            # Run the init script we created earlier
-            subprocess.run([sys.executable, "init_chainlit_db_v3.py"], check=True)
-            print("✅ Database initialized.")
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to initialize database: {e}")
-            sys.exit(1)
+    # if not os.path.exists("data/chainlit.db"):
+    print("🚀 First run detected. Initializing Database Schema...")
+    try:
+        # Run the init script we created earlier
+        subprocess.run([sys.executable, "init_chainlit_db_v3.py"], check=True)
+        print("✅ Database initialized.")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to initialize database: {e}")
+        sys.exit(1)
 
     # 3. Start Chainlit
     print("🚀 Starting Journalist Studio...")

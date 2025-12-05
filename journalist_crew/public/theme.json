@@ -1,0 +1,22 @@
+{
+    "custom_fonts": ["https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Inter:wght@400;600&display=swap"],
+    "variables": {
+        "light": {
+            "--font-sans": "'Inter', sans-serif",
+            "--font-mono": "'Courier New', monospace",
+            "--foreground": "0 0% 0%",
+            "--primary": "217 91% 60%",
+            "--primary-foreground": "0 0% 100%",
+            "--background": "0 0% 98%",
+            "--sidebar-background": "220 13% 95%"
+        },
+        "dark": {
+            "--font-sans": "'Inter', sans-serif",
+            "--font-mono": "'Courier New', monospace",
+            "--background": "222 47% 11%",
+            "--foreground": "210 40% 98%",
+            "--primary": "217 91% 60%",
+            "--sidebar-background": "217 19% 10%"
+        }
+    }
+}

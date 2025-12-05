@@ -1,8 +1,11 @@
+import os
 import sqlite3
 from typing import List, Dict, Optional
 from journalist_crew.models import ResearchDossier
 
+# DB_FILE = "data/journalist_studio.db"
 DB_FILE = "journalist_studio.db"
+
 
 class StorageManager:
     def __init__(self):
@@ -11,6 +14,7 @@ class StorageManager:
         self._init_db()
 
     def _init_db(self):
+        # os.makedirs("data", exist_ok=True)
         cursor = self.conn.cursor()
         
         # 1. Dossiers Table
