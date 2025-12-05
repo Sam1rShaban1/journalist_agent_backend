@@ -43,7 +43,7 @@ journalist_crew/
 
 ## 🛠️ Prerequisites
 
-*   **Python 3.13.5+**
+*   **Python 3.12+**
 *   **uv** (Python package manager - fast & efficient)
 
 ## 📦 Installation & Setup
