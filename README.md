@@ -1,4 +1,4 @@
-# 📰 AI Journalist Studio (Database-Native)
+# 📰 AI Journalist Studio
 
 **AI Journalist Studio** is a persistent, multi-agent system designed for deep investigative research and professional news writing.
 
