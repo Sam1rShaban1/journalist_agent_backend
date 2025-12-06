@@ -116,25 +116,29 @@ def format_dossier_to_markdown(dossier) -> str:
 
 
 async def send_write_action():
-    """Render a persistent write action under the dossier."""
+    """Always render the write action in its own message so Chainlit shows it after resume."""
     label = t("write_btn")
     if not label or label == "write_btn":
         label = "✍️ Write article"
 
+    # First send the status text so the button can remain in a dedicated action block
+    await cl.Message(
+        content="⬇ **Research ready.** Click below to draft an article or ask follow-up questions.",
+    ).send()
+
+    unique_id = f"write-{uuid.uuid4().hex[:8]}"
     actions = [
         cl.Action(
             name="write_article",
             value="write",
             label=label,
-            id=f"write-{uuid.uuid4().hex[:8]}",
+            id=unique_id,
             payload={},
         )
     ]
 
-    await cl.Message(
-        content="⬇ **Research ready.** Click below to draft an article or ask follow-up questions.",
-        actions=actions,
-    ).send()
+    # Chainlit renders actions more reliably when the message body is minimal (especially on resume)
+    await cl.Message(content=" ", actions=actions).send()
 
 
 async def show_dossier(dossier):
@@ -276,13 +280,22 @@ async def on_start():
 
 @cl.on_chat_resume
 async def on_resume(thread: Dict[str, Any]):
-    crew = ensure_crew()
+    # Always create a fresh crew for this session
+    crew = JournalistCrew()
+    cl.user_session.set("crew", crew)
+    
     metadata = safe_parse_metadata(thread.get("metadata"))
-
     dossier_id = metadata.get("dossier_id") or thread.get("id")
+    
+    print(f"[on_resume] Attempting to load dossier_id: {dossier_id}")
+    
     if dossier_id and crew.load_context(dossier_id):
         await cl.Message(content="✅ Session restored from previous research.").send()
-        await show_dossier(crew.current_dossier)
+        # Ensure dossier is loaded before showing
+        if crew.current_dossier:
+            await show_dossier(crew.current_dossier)
+        else:
+            await cl.Message(content="❗Dossier loaded but content missing. Start fresh.").send()
     else:
         await cl.Message(content="❗Unable to restore this session. Start fresh with a new prompt.").send()
 

@@ -58,7 +58,7 @@
     },
     "chat": {
         "input": {
-            "placeholder": "Shkruani mesazhin tuaj...",
+            "placeholder": "Shkruani topikun tuaj...",
             "actions": {
                 "send": "Dërgo",
                 "stop": "Ndalo",
@@ -250,7 +250,7 @@
       },
       "input": {
         "chatInput": {
-          "placeholder": "Shkruani mesazhin tuaj..."
+          "placeholder": "Shkruani topikun tuaj..."
         }
       }
     },

@@ -107,6 +107,15 @@ class JournalistCrew:
             timeout=900,
             max_retries=3
         )
+        self.write_llm = LLM(
+            model="openrouter/openai/gpt-oss-120b:free",
+            base_url="https://openrouter.ai/api/v1",
+            api_key=os.getenv("OPENROUTER_API_KEY"),
+            temperature=0.3,
+            max_tokens=65536,
+            timeout=900,
+            max_retries=3
+        )
 
         # self.smart_llm = LLM(
         #     model="gemini/gemini-2.5-flash-lite", # Uses Google Provider directly
@@ -168,7 +177,7 @@ class JournalistCrew:
         return Agent(
             config=self.agents_config['writer'],
             verbose=True,
-            llm=self.smart_llm
+            llm=self.write_llm
         )
 
     def _merge_dossiers(self, old: ResearchDossier, new: ResearchDossier) -> ResearchDossier:
