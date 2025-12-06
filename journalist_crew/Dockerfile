@@ -1,36 +1,34 @@
+# Use Python 3.12 slim
 FROM python:3.12-slim
 
 # Install system dependencies
+# curl is useful for healthchecks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Install uv
+# Get uv binary directly
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
+# Set working directory
 WORKDIR /app
 
-# Setup Environment
-ENV VIRTUAL_ENV=/app/.venv
-RUN uv venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+# --- LAYER 1: DEPENDENCIES (Cached) ---
+COPY pyproject.toml uv.lock ./
 
-# Copy dependency files
-COPY pyproject.toml .
+# Install dependencies from the lockfile.
+RUN uv sync --frozen --no-install-project
 
-# Install Python Deps
-RUN uv pip install crewai "crewai[tools]" duckduckgo-search langdetect pydantic chromadb chainlit sqlalchemy aiosqlite
-
-# Copy App Code
+# --- LAYER 2: APPLICATION CODE ---
 COPY src/ src/
 COPY public/ public/
 COPY .chainlit/ .chainlit/
-# Copy scripts
-COPY init_chainlit_db.py .
-COPY launcher.py .
 
-# Create data directory (Just in case)
-RUN mkdir -p data
+# Install the project itself (links your src/ folder)
+RUN uv sync --frozen
+
+# --- ENVIRONMENT ---
+ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-# FIX: Run the launcher, which handles DB creation + App Start
-CMD ["python", "launcher.py"]
+# Run Command
+CMD ["chainlit", "run", "src/journalist_crew/ui.py", "--host", "0.0.0.0", "--port", "8000"]

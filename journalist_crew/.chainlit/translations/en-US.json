@@ -58,7 +58,7 @@
     },
     "chat": {
         "input": {
-            "placeholder": "Type your message here...",
+            "placeholder": "Type your topic here...",
             "actions": {
                 "send": "Send message",
                 "stop": "Stop Task",
@@ -250,7 +250,7 @@
       },
       "input": {
         "chatInput": {
-          "placeholder": "Type your message here..."
+          "placeholder": "Type your topic here..."
         }
       }
     },
