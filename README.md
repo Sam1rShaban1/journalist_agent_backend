@@ -1,56 +1,58 @@
 # 📰 AI Journalist Studio
 
-**AI Journalist Studio** is a professional-grade, persistent multi-agent system designed for deep investigative research and high-quality news writing.
+**AI Journalist Studio** is a production-grade, scalable multi-agent system designed for deep investigative research and high-quality news writing.
 
-Unlike standard AI chatbots, this system uses a **Split-Brain Architecture**: it separates **Deep Research** (Time-intensive, Tool-heavy) from **Writing** (Fast, Iterative). It stores all research findings in a structured local database ("Dossiers"), allowing you to generate infinite article variations without re-running expensive searches.
+Unlike standard AI chatbots, this system uses a **Split-Brain Architecture**: it separates **Deep Research** (Time-intensive, Tool-heavy) from **Writing** (Fast, Iterative). It stores all research findings in a **PostgreSQL Database**, allowing for high concurrency, data persistence, and infinite article generation without re-running expensive searches.
 
 ## 🚀 Key Features
 
-*   **🧠 Persistent Context:** Research findings are saved to `journalist_studio.db`. You can close the app, return days later, and continue where you left off.
+*   **🧠 Production-Grade Persistence:** Uses **PostgreSQL** to store Research Dossiers and Chat History. No file locking issues, fully scalable.
+*   **⚖️ Scalable Architecture:** Containerized with **Docker Compose**, featuring **Nginx Load Balancing** across multiple application replicas.
 *   **🖥️ Professional UI:** Built with **Chainlit**, featuring:
-    *   **Chat History:** Sidebar with past research sessions.
+    *   **Persistent Chat History:** Stored securely in Postgres.
     *   **Multi-User Auth:** Secure login system.
-    *   **Localization:** Full support for **English (en-US)** and **Albanian (sq-AL)** interfaces.
+    *   **Localization:** Full support for **English (en-US)** and **Albanian (sq-AL)**.
     *   **Custom Styling:** "Newsroom" Dark Mode and High-Contrast Light Mode.
-*   **🔍 Deep-Dive Tools:** Agents use specialized tools to find facts:
-    *   **PDF Search:** Reads official government reports/contracts.
-    *   **YouTube Search:** Finds direct quotes from political speeches/interviews.
+*   **🔍 Deep-Dive Tools:** Agents use specialized tools:
+    *   **PDF Search:** Reads official government reports/contracts (Vector-based).
+    *   **YouTube Search:** Finds direct quotes from political speeches.
     *   **Website Search:** Scrapes specific news archives.
-*   **⚡ Cost-Efficient RAG:** Uses **Google Gemini Embeddings** (Free Tier) for vector search, saving significant OpenAI costs.
+*   **⚡ Cost-Efficient RAG:** Uses **Google Gemini Embeddings** (Free Tier) for vector search.
 *   **🔄 "Dig Deeper" Workflow:**
-    *   Research specific missing details (e.g., *"Find the 2023 budget numbers"*) and **merge** them into the existing dossier.
+    *   Research specific missing details (e.g., *"Find the 2023 budget numbers"*) and **merge** them into the existing dossier programmatically.
     *   Generate articles with specific instructions (Tone, Language, Length) via the Settings panel.
 
 ## 📂 Project Structure
 
 ```text
 journalist_crew/
+├── docker-compose.yml       # Service Orchestration (App, DB, Nginx)
+├── nginx.conf               # Load Balancer & WebSocket Config
+├── .env                     # API Keys & DB Connection Strings
+├── pyproject.toml           # Dependencies (uv)
 ├── .chainlit/               # UI Config & Translations
 │   ├── translations/        # en-US.json, sq-AL.json
 │   └── config.toml          # UI Settings
 ├── public/                  # Assets (Logos, Avatars, CSS)
 ├── src/
 │   └── journalist_crew/
-│       ├── config/          # Agent Roles (YAML)
+│       ├── config/          # Agent Roles & Tasks (YAML)
 │       ├── tools/           # Custom Tool Logic
 │       ├── crew.py          # The Brain (LLMs, Tools, Logic)
 │       ├── ui.py            # The Frontend (Chainlit Logic)
 │       ├── models.py        # Data Schemas (Pydantic)
-│       └── storage.py       # Database Layer (SQLite)
-├── journalist_studio.db     # Research Data (Dossiers)
-├── chainlit.db              # Chat History & Users
-├── .env                     # API Keys
-└── pyproject.toml           # Dependencies (uv)
+│       └── storage.py       # Database Layer (PostgreSQL Logic)
 ```
 
 ## 🛠️ Prerequisites
 
-*   **Python 3.12+**
-*   **uv** (Recommended package manager)
+*   **Docker & Docker Compose**
+*   **Python 3.12+** (For local development)
+*   **uv** (Package manager)
 *   **Google AI Studio Key** (Free)
 *   **OpenRouter Key** (For LLM inference)
 
-## 📦 Installation
+## 📦 Installation & Configuration
 
 1.  **Clone the repository:**
     ```bash
@@ -58,57 +60,65 @@ journalist_crew/
     cd journalist_crew
     ```
 
-2.  **Install dependencies:**
-    ```powershell
-    uv sync
-    # Or manually:
-    uv add crewai "crewai[tools]" duckduckgo-search langdetect pydantic chromadb chainlit sqlalchemy aiosqlite
-    ```
-
-3.  **Configure Environment (`.env`):**
-    Create a `.env` file in the root directory:
+2.  **Configure Environment (`.env`):**
+    Create a `.env` file in the root directory. Ensure you set the Database URLs correctly for the container network.
 
     ```ini
-    # --- LLM KEYS ---
-    # Get key: https://openrouter.ai/keys
-    OPENROUTER_API_KEY=sk-or-v1-...
+    # --- POSTGRESQL CONFIG ---
+    POSTGRES_USER=journalist
+    POSTGRES_PASSWORD=secure_password
+    POSTGRES_DB=journalist_db
 
-    # Get key: https://aistudio.google.com/app/apikey
-    GOOGLE_API_KEY=AIzaSy-...
+    # Sync URL (For Business Logic)
+    DATABASE_URL=postgresql://journalist:secure_password@db:5432/journalist_db
 
-    # Get key: https://serper.dev/
-    SERPER_API_KEY=...
+    # Async URL (For Chainlit UI)
+    CHAINLIT_DATABASE_URL=postgresql+asyncpg://journalist:secure_password@db:5432/journalist_db
 
     # --- APP SECURITY ---
     # Generate with: chainlit create-secret
     CHAINLIT_AUTH_SECRET=your_secret_string
-
-    # Users (JSON Format)
     CHAINLIT_USERS={"admin": "admin123", "editor": "news2025"}
+
+    # --- LLM KEYS ---
+    OPENROUTER_API_KEY=sk-or-v1-...
+    GOOGLE_API_KEY=AIzaSy-...
+    SERPER_API_KEY=...
     ```
 
-## 🏃‍♂️ How to Run
+## 🏃‍♂️ How to Run (Docker)
 
-### Local Development
-Start the Chainlit server with auto-reload enabled:
+This is the recommended way to run the application. It spins up the Database, 3 Application Replicas, and the Nginx Load Balancer.
 
-```powershell
-chainlit run src/journalist_crew/ui.py -w
-```
-
-Access the app at **`http://localhost:8000`**.
-
-### Docker Deployment
-The project is fully containerized.
-
-1.  **Build and Run:**
+1.  **Build and Start:**
     ```powershell
     docker-compose up --build -d
     ```
-2.  **Access:**
-    Go to **`http://localhost`** (Nginx handles the routing).
 
-*(Note: Docker will automatically initialize the database schema on the first run.)*
+2.  **Access the App:**
+    Go to **`http://localhost`**
+    *(Nginx listens on port 80 and forwards traffic to the available app instances).*
+
+    *Note: The database schema is automatically initialized by `storage.py` when the containers start.*
+
+## 🏃‍♂️ How to Run (Local Dev)
+
+If you want to run without Docker (requires a running Postgres instance):
+
+1.  **Install dependencies:**
+    ```powershell
+    uv sync
+    # Or manually:
+    uv add crewai "crewai[tools]" duckduckgo-search langdetect pydantic chromadb chainlit sqlalchemy asyncpg psycopg2-binary
+    ```
+
+2.  **Update `.env` for Localhost:**
+    Change `@db:5432` to `@localhost:5432` in your `.env` file.
+
+3.  **Start the UI:**
+    ```powershell
+    chainlit run src/journalist_crew/ui.py
+    ```
 
 ## 🧩 Workflow Guide
 
@@ -123,10 +133,6 @@ The project is fully containerized.
 
 ## 🛡️ Troubleshooting
 
-*   **`database is locked`**: Close any DBeaver/SQLite viewers or restart the app.
+*   **`sqlalchemy.exc.OperationalError`**: Ensure the `db` container is healthy. Run `docker-compose ps`.
 *   **`RateLimitError`**: The free OpenRouter models are busy. Wait a minute or switch to a paid model in `crew.py`.
-*   **UI Issues**: If buttons look wrong, perform a **Hard Refresh** (`Ctrl+F5`) to reload the custom CSS.
-
-## 📄 License
-MIT
-```
+*   **UI Issues**: If buttons look wrong or text is invisible in Light Mode, perform a **Hard Refresh** (`Ctrl+F5`) to reload the custom CSS.
