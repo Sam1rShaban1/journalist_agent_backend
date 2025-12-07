@@ -108,7 +108,7 @@ class JournalistCrew:
             max_retries=3
         )
         self.write_llm = LLM(
-            model="openrouter/openai/gpt-oss-120b:free",
+            model="openrouter/openai/gpt-oss-20b:free",
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
             temperature=0.3,

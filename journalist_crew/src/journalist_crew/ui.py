@@ -7,8 +7,18 @@ import chainlit as cl
 from journalist_crew.crew import JournalistCrew
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.input_widget import Select, TextInput
+from phoenix.otel import register
+from openinference.instrumentation.crewai import CrewAIInstrumentor
 
 # import psycopg2 # Uncomment for PostgreSQL
+
+tracer_provider = register(
+    project_name="journalist-crew",
+    endpoint="http://localhost:6006/v1/traces"
+)
+
+CrewAIInstrumentor().instrument(tracer_provider=tracer_provider)
+
 
 @cl.data_layer
 def get_data_layer():
