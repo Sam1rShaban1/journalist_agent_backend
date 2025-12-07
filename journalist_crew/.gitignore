@@ -1,4 +1,4 @@
-journalist_crew\src\journalist_crew\.env
+.env
 __pycache__/
 .DS_Store
 uv.lock
