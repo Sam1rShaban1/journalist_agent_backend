@@ -1,0 +1,19 @@
+/* Make Sidebar Logo Bigger */
+img[alt="logo"] {
+    width: 200px !important;
+    max-width: none !important;
+    height: auto !important;
+}
+
+/* Make Chat Avatar Bigger */
+.message-avatar {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 6px !important;
+    background-color: transparent !important;
+}
+
+/* Fix text overlapping with big avatar */
+.ai-message, .human-message {
+    gap: 1.5rem !important;
+}

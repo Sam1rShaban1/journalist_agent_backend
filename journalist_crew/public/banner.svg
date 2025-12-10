@@ -1,0 +1,52 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- DEFINITIONS -->
+    <defs>
+        <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0f172a" /> <!-- Dark Slate -->
+            <stop offset="100%" stop-color="#2F5C5C" /> <!-- Portalb Teal -->
+        </linearGradient>
+    </defs>
+
+    <!-- BACKGROUND -->
+    <rect width="1200" height="630" fill="url(#bg-gradient)" />
+
+    <!-- WATERMARK / TEXTURE (Subtle Background Shapes) -->
+    <g opacity="0.3">
+        <!-- Bottom Right Large Diamond -->
+        <rect x="1000" y="400" width="300" height="300" 
+              transform="rotate(45 1000 400)" 
+              stroke="white" stroke-width="2" stroke-opacity="0.1" fill="transparent"/>
+        
+        <!-- Top Left Small Diamond -->
+        <rect x="100" y="100" width="150" height="150" 
+              transform="rotate(45 100 100)" 
+              stroke="#E86326" stroke-width="2" stroke-opacity="0.1" fill="transparent"/>
+    </g>
+
+    <!-- MAIN LOGO (Centered) -->
+    <!-- Translating to center (600, 315) and scaling up by 3x -->
+    <g transform="translate(600, 315) scale(3)">
+        
+        <!-- Left Diamond (Teal Fill) -->
+        <!-- We use negative coordinates on x/y to center the rect on its own origin point before rotation -->
+        <rect x="-24" y="-24" width="48" height="48" 
+              transform="translate(-40, 0) rotate(45)" 
+              fill="#2F5C5C" />
+        
+        <!-- Top Diamond (Teal Fill) -->
+        <rect x="-24" y="-24" width="48" height="48" 
+              transform="translate(0, -40) rotate(45)" 
+              fill="#2F5C5C" />
+        
+        <!-- Bottom Diamond (Teal Fill) -->
+        <rect x="-24" y="-24" width="48" height="48" 
+              transform="translate(0, 40) rotate(45)" 
+              fill="#2F5C5C" />
+        
+        <!-- Right Diamond (Orange Outline) -->
+        <!-- Slightly smaller width to account for the stroke width so visual size matches -->
+        <rect x="-21" y="-21" width="42" height="42" 
+              transform="translate(40, 0) rotate(45)" 
+              stroke="#E86326" stroke-width="6" fill="transparent" />
+    </g>
+</svg>

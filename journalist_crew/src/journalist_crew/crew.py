@@ -89,7 +89,7 @@ class JournalistCrew:
 
         # --- LLM CONFIGURATION ---
         self.smart_llm = LLM(
-            model="openrouter/tngtech/deepseek-r1t2-chimera:free",
+            model="openrouter/arcee-ai/trinity-mini:free",
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
             temperature=0.7,
@@ -108,7 +108,7 @@ class JournalistCrew:
             max_retries=3
         )
         self.write_llm = LLM(
-            model="openrouter/openai/gpt-oss-20b:free",
+            model="openrouter/arcee-ai/trinity-mini:free",
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
             temperature=0.3,
@@ -249,7 +249,7 @@ class JournalistCrew:
             agents=[strategy, hunter, analyst],
             tasks=[plan, facts, analysis, compile_t],
             verbose=True,
-            max_rpm=10
+            max_rpm=30
         )
 
         search_query = topic

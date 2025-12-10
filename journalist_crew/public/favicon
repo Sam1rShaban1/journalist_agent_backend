@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Centered Group -->
+    <g transform="translate(256, 256)">
+        
+        <!-- Left Diamond (Teal) -->
+        <!-- Negative x/y coordinates centered the rect on itself so rotation spins around center -->
+        <rect x="-40" y="-40" width="80" height="80" 
+              transform="translate(-62, 0) rotate(45)" 
+              fill="#2F5C5C" />
+        
+        <!-- Top Diamond (Teal) -->
+        <rect x="-40" y="-40" width="80" height="80" 
+              transform="translate(0, -62) rotate(45)" 
+              fill="#2F5C5C" />
+        
+        <!-- Bottom Diamond (Teal) -->
+        <rect x="-40" y="-40" width="80" height="80" 
+              transform="translate(0, 62) rotate(45)" 
+              fill="#2F5C5C" />
+        
+        <!-- Right Diamond (Orange Hollow) -->
+        <!-- Width is slightly smaller to account for the stroke thickness -->
+        <rect x="-35" y="-35" width="70" height="70" 
+              transform="translate(62, 0) rotate(45)" 
+              stroke="#E86326" stroke-width="10" fill="none" />
+    </g>
+</svg>

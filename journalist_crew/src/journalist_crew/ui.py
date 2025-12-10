@@ -348,7 +348,7 @@ async def on_write(action):
     
     await loader.remove()
 
-    article_block = "### Writer Draft\n\n```\n" + article.strip() + "\n```"
+    article_block = "### Writer Draft\n\n" + article.strip()
     await cl.Message(content=article_block).send()
     
     await send_write_action()
